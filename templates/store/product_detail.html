@@ -1,0 +1,463 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} | Nike Store{% endblock %}
+
+{% block content %}
+<script>
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Cart functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const quantityInput = document.getElementById('quantity');
+        const decreaseBtn = document.getElementById('decrease-quantity');
+        const increaseBtn = document.getElementById('increase-quantity');
+        const addToCartBtn = document.getElementById('add-to-cart');
+        const addToWishlistBtn = document.getElementById('add-to-wishlist');
+        const cartErrorAlert = document.getElementById('cart-error');
+        const cartSuccessAlert = document.getElementById('cart-success');
+        const wishlistErrorAlert = document.getElementById('wishlist-error');
+        const wishlistSuccessAlert = document.getElementById('wishlist-success');
+
+        // Handle decrease quantity
+        decreaseBtn.addEventListener('click', function() {
+            const currentValue = parseInt(quantityInput.value);
+            if (currentValue > 1) {
+                quantityInput.value = currentValue - 1;
+            }
+        });
+
+        // Handle increase quantity
+        increaseBtn.addEventListener('click', function() {
+            const currentValue = parseInt(quantityInput.value);
+            const max = parseInt(quantityInput.getAttribute('max'));
+            if (currentValue < max) {
+                quantityInput.value = parseInt(currentValue) + 1;
+            }
+        });
+        
+        // Size selection handling
+        const sizeInputs = document.querySelectorAll('input[name="size"]');
+        sizeInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                sizeInputs.forEach(inp => {
+                    const label = inp.parentElement;
+                    if (inp.checked) {
+                        label.classList.add('selected');
+                    } else {
+                        label.classList.remove('selected');
+                    }
+                });
+            });
+        });
+
+        // Add to cart handling
+        if (addToCartBtn) {
+            addToCartBtn.addEventListener('click', function() {
+                // Hide previous alerts
+                cartErrorAlert.classList.add('d-none');
+                cartSuccessAlert.classList.add('d-none');
+                wishlistErrorAlert.classList.add('d-none');
+                wishlistSuccessAlert.classList.add('d-none');
+                
+                // Get selected size
+                const selectedSize = document.querySelector('input[name="size"]:checked');
+                if (!selectedSize) {
+                    cartErrorAlert.textContent = 'Будь ласка, виберіть розмір';
+                    cartErrorAlert.classList.remove('d-none');
+                    return;
+                }
+                
+                // Get quantity
+                const quantity = parseInt(quantityInput.value);
+                if (isNaN(quantity) || quantity < 1) {
+                    cartErrorAlert.textContent = 'Будь ласка, вкажіть кількість';
+                    cartErrorAlert.classList.remove('d-none');
+                    return;
+                }
+                
+                // Get product ID
+                const productId = '{{ product.id }}';
+                
+                // Send request to add to cart
+                fetch('{% url "store:cart_add" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        size: selectedSize.value,
+                        quantity: quantity
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        cartSuccessAlert.classList.remove('d-none');
+                        
+                        // Update cart count in navbar
+                        const cartCount = document.querySelector('.cart-count');
+                        if (cartCount) {
+                            cartCount.textContent = data.cart_items_count;
+                        }
+                    } else if (data.error) {
+                        cartErrorAlert.textContent = data.error;
+                        cartErrorAlert.classList.remove('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error adding to cart:', error);
+                    cartErrorAlert.textContent = 'Помилка додавання товару до кошика';
+                    cartErrorAlert.classList.remove('d-none');
+                });
+            });
+        }
+        
+        // Add to wishlist handling
+        if (addToWishlistBtn) {
+            addToWishlistBtn.addEventListener('click', function() {
+                // Hide previous alerts
+                cartErrorAlert.classList.add('d-none');
+                cartSuccessAlert.classList.add('d-none');
+                wishlistErrorAlert.classList.add('d-none');
+                wishlistSuccessAlert.classList.add('d-none');
+                
+                // Get selected size
+                const selectedSize = document.querySelector('input[name="size"]:checked');
+                if (!selectedSize) {
+                    wishlistErrorAlert.textContent = 'Будь ласка, виберіть розмір';
+                    wishlistErrorAlert.classList.remove('d-none');
+                    return;
+                }
+                
+                // For demonstration purposes, we'll just show a success message
+                // In a real app, you would send a request to the server to add to wishlist
+                wishlistSuccessAlert.classList.remove('d-none');
+                
+                // After 3 seconds, hide the success message
+                setTimeout(function() {
+                    wishlistSuccessAlert.classList.add('d-none');
+                }, 3000);
+            });
+        }
+    });
+</script>
+<div class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'store:index' %}">Головна</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'store:product_list' %}">Товари</a></li>
+            <li class="breadcrumb-item"><a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Images Carousel -->
+        <div class="col-md-6 mb-4">
+            <div id="productImageCarousel" class="carousel slide" data-bs-ride="false">
+                <div class="carousel-inner">
+                    <!-- Main Image -->
+                    <div class="carousel-item active">
+                        <img src="{{ main_image.url }}" alt="{{ product.name }}" class="d-block w-100 product-detail-img">
+                    </div>
+                    
+                    <!-- Additional Images -->
+                    {% for img in product_images %}
+                        {% if not img.is_main %}  <!-- Skip main image as it's already shown -->
+                        <div class="carousel-item">
+                            <img src="{{ img.image.url }}" alt="{{ product.name }} - Image {{ forloop.counter }}" class="d-block w-100 product-detail-img">
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                
+                {% if product_images.count > 1 or main_image %}
+                <button class="carousel-control-prev" type="button" data-bs-target="#productImageCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Попередня</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#productImageCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Наступна</span>
+                </button>
+                
+                <!-- Thumbnails for navigation -->
+                <div class="row mt-2">
+                    <!-- Main Image Thumbnail -->
+                    <div class="col-3 mb-2">
+                        <img src="{{ main_image.url }}" class="img-thumbnail" alt="{{ product.name }}" 
+                             onclick="activateCarouselItem(0)" style="cursor: pointer;">
+                    </div>
+                    
+                    <!-- Additional Image Thumbnails -->
+                    {% for img in product_images %}
+                        {% if not img.is_main %}
+                        <div class="col-3 mb-2">
+                            <img src="{{ img.image.url }}" class="img-thumbnail" alt="{{ product.name }} - Image {{ forloop.counter }}" 
+                                 onclick="activateCarouselItem({{ forloop.counter }})" style="cursor: pointer;">
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <script>
+        function activateCarouselItem(index) {
+            const carousel = document.querySelector('#productImageCarousel');
+            const bsCarousel = new bootstrap.Carousel(carousel);
+            bsCarousel.to(index);
+        }
+        </script>
+
+        <!-- Product Details -->
+        <div class="col-md-6">
+            <h1 class="mb-3">{{ product.name }}</h1>
+            <p class="text-muted mb-3">
+                {% if product.gender == 'M' %}Чоловічі
+                {% elif product.gender == 'W' %}Жіночі
+                {% else %}Дитячі
+                {% endif %}
+                • {{ product.get_shoe_type_display }}
+            </p>
+            
+            <h3 class="mb-3 fw-bold">{{ product.price }} грн</h3>
+            
+            <form>
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Розмір</label>
+                    <div class="size-selector">
+                        {% for size in sizes %}
+                            <div class="form-check form-check-inline size-option">
+                                <input class="form-check-input" type="radio" name="size" id="size-{{ size.size }}" value="{{ size.size }}" 
+                                       {% if size.stock <= 0 %}disabled{% endif %}>
+                                <label class="form-check-label size-label" for="size-{{ size.size }}">
+                                    {{ size.size }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="size-guide mt-2">
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#sizeGuideModal">
+                            <small>Розмірна сітка <i class="fas fa-ruler-horizontal"></i></small>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Кількість</label>
+                    <div class="quantity-selector">
+                        <button type="button" class="btn btn-outline-dark quantity-btn" id="decrease-quantity">-</button>
+                        <input type="number" class="form-control quantity-input" value="1" min="1" max="10" id="quantity">
+                        <button type="button" class="btn btn-outline-dark quantity-btn" id="increase-quantity">+</button>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mb-4">
+                    <button type="button" class="btn btn-dark btn-lg add-to-cart-btn" id="add-to-cart">
+                        <i class="fas fa-shopping-cart me-2"></i>Додати до кошика
+                    </button>
+                    <button type="button" class="btn btn-outline-dark btn-lg" id="buy-now">Придбати
+                    </button>
+                </div>
+                <div class="alert alert-danger mt-2 d-none" id="cart-error"></div>
+                <div class="alert alert-success mt-2 d-none" id="cart-success">
+                    <i class="fas fa-check-circle me-2"></i>Товар додано до кошика!
+                    <div class="mt-2">
+                        <a href="{% url 'store:cart_view' %}" class="btn btn-sm btn-dark">Перейти до кошика</a>
+                    </div>
+                </div>
+                <div class="alert alert-danger mt-2 d-none" id="wishlist-error"></div>
+                <div class="alert alert-success mt-2 d-none" id="wishlist-success">
+                    <i class="fas fa-check-circle me-2"></i>Товар додано до списку бажань!
+                </div>
+            </form>
+            
+            <div class="accordion" id="productAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingDescription">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDescription" aria-expanded="true" aria-controls="collapseDescription">
+                            Опис товару
+                        </button>
+                    </h2>
+                    <div id="collapseDescription" class="accordion-collapse collapse show" aria-labelledby="headingDescription" data-bs-parent="#productAccordion">
+                        <div class="accordion-body">
+                            {{ product.description|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingDelivery">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDelivery" aria-expanded="false" aria-controls="collapseDelivery">
+                            Доставка і повернення
+                        </button>
+                    </h2>
+                    <div id="collapseDelivery" class="accordion-collapse collapse" aria-labelledby="headingDelivery" data-bs-parent="#productAccordion">
+                        <div class="accordion-body">
+                            <p><i class="fas fa-truck me-2"></i> Безкоштовна доставка для замовлень від 1500 грн</p>
+                            <p><i class="fas fa-box-open me-2"></i> Повернення протягом 30 днів</p>
+                            <p><i class="fas fa-shield-alt me-2"></i> Гарантія оригінальної продукції</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    <div class="mt-5 pt-5 border-top">
+        <h3 class="mb-4">Вам також може сподобатись</h3>
+        <div class="row g-4">
+            {% for product in related_products %}
+            <div class="col-md-3">
+                <div class="card product-card h-100">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product-img">
+                    {% else %}
+                    <div class="no-img-placeholder"></div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">
+                            <small>
+                                {% if product.gender == 'M' %}Чоловічі
+                                {% elif product.gender == 'W' %}Жіночі
+                                {% else %}Дитячі
+                                {% endif %}
+                                • {{ product.get_shoe_type_display }}
+                            </small>
+                        </p>
+                        <p class="card-text fw-bold">{{ product.price }} грн</p>
+                    </div>
+                    <div class="card-footer bg-white border-0">
+                        <a href="{{ product.get_absolute_url }}" class="btn btn-dark w-100">Детальніше</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Size Guide Modal -->
+<div class="modal fade" id="sizeGuideModal" tabindex="-1" aria-labelledby="sizeGuideModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sizeGuideModalLabel">Розмірна сітка</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered size-guide-table">
+                    <thead>
+                      <tr>
+                        <th>EU</th>
+                        <th>UK</th>
+                        <th>US (Чол.)</th>
+                        <th>US (Жін.)</th>
+                        <th>CM</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>39</td>
+                        <td>6</td>
+                        <td>7</td>
+                        <td>8.5</td>
+                        <td>25</td>
+                      </tr>
+                      <tr>
+                        <td>40</td>
+                        <td>6.5</td>
+                        <td>7.5</td>
+                        <td>9</td>
+                        <td>25.5</td>
+                      </tr>
+                      <tr>
+                        <td>41</td>
+                        <td>7</td>
+                        <td>8</td>
+                        <td>9.5</td>
+                        <td>26</td>
+                      </tr>
+                      <tr>
+                        <td>42</td>
+                        <td>7.5</td>
+                        <td>8.5</td>
+                        <td>10</td>
+                        <td>26.5</td>
+                      </tr>
+                      <tr>
+                        <td>42.5</td>
+                        <td>8</td>
+                        <td>9</td>
+                        <td>10.5</td>
+                        <td>27</td>
+                      </tr>
+                      <tr>
+                        <td>43</td>
+                        <td>8.5</td>
+                        <td>9.5</td>
+                        <td>11</td>
+                        <td>27.5</td>
+                      </tr>
+                      <tr>
+                        <td>44</td>
+                        <td>9</td>
+                        <td>10</td>
+                        <td>11.5</td>
+                        <td>28</td>
+                      </tr>
+                      <tr>
+                        <td>44.5</td>
+                        <td>9.5</td>
+                        <td>10.5</td>
+                        <td>12</td>
+                        <td>28.5</td>
+                      </tr>
+                      <tr>
+                        <td>45</td>
+                        <td>10</td>
+                        <td>11</td>
+                        <td>12.5</td>
+                        <td>29</td>
+                      </tr>
+                      <tr>
+                        <td>46</td>
+                        <td>10.5</td>
+                        <td>11.5</td>
+                        <td>13</td>
+                        <td>29.5</td>
+                      </tr>
+                      <tr>
+                        <td>46.5</td>
+                        <td>11</td>
+                        <td>12</td>
+                        <td>13.5</td>
+                        <td>30</td>
+                      </tr>
+                    </tbody>
+                  </table>   
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

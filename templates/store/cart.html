@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Кошик | Nike Store{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">Кошик</h1>
+    
+    {% if cart_items %}
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Cart items -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Товар</th>
+                                <th>Розмір</th>
+                                <th>Ціна</th>
+                                <th>Кількість</th>
+                                <th>Всього</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cart_items %}
+                            <tr class="cart-item" data-item-id="{{ item.id }}">
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center">
+                                        <div class="cart-product-img me-3">
+                                            {% if item.product.image %}
+                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-fluid" style="max-width: 80px;">
+                                            {% else %}
+                                            <div class="no-img-placeholder" style="width: 80px; height: 80px;"></div>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <a href="{{ item.product.get_absolute_url }}" class="text-dark">{{ item.product.name }}</a>
+                                            <div class="small text-muted">
+                                                {% if item.product.gender == 'M' %}Чоловічі
+                                                {% elif item.product.gender == 'W' %}Жіночі
+                                                {% else %}Дитячі
+                                                {% endif %}
+                                                • {{ item.product.get_shoe_type_display }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="align-middle">{{ item.size.size }}</td>
+                                <td class="align-middle">{{ item.product.price }} грн</td>
+                                <td class="align-middle" style="width: 150px;">
+                                    <div class="input-group">
+                                        <button class="btn btn-outline-dark decrease-quantity" type="button">-</button>
+                                        <input type="number" class="form-control text-center item-quantity" value="{{ item.quantity }}" min="1" max="{{ item.size.stock }}">
+                                        <button class="btn btn-outline-dark increase-quantity" type="button">+</button>
+                                    </div>
+                                </td>
+                                <td class="align-middle item-total">{{ item.get_cost }} грн</td>
+                                <td class="align-middle">
+                                    <button class="btn btn-link text-danger remove-item" title="Видалити">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Continue shopping -->
+            <div>
+                <a href="{% url 'store:product_list' %}" class="btn btn-outline-dark">
+                    <i class="fas fa-arrow-left me-2"></i>Продовжити покупки
+                </a>
+            </div>
+        </div>
+        
+        <!-- Cart summary -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Ваше замовлення</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Сума товарів:</span>
+                        <span class="fw-bold cart-subtotal">{{ cart.get_total_cost }} грн</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Доставка:</span>
+                        <span>Безкоштовно</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-4">
+                        <span class="fw-bold">До сплати:</span>
+                        <span class="fw-bold cart-total">{{ cart.get_total_cost }} грн</span>
+                    </div>
+                    <div class="d-grid">
+                        <a href="{% url 'store:checkout' %}" class="btn btn-dark btn-lg">
+                            Оформити замовлення
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-shopping-cart fa-4x mb-4 text-muted"></i>
+        <h2>Ваш кошик порожній</h2>
+        <p class="text-muted">Додайте товари до кошика, щоб оформити замовлення</p>
+        <a href="{% url 'store:product_list' %}" class="btn btn-dark mt-3">Перейти до каталогу</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update quantity
+        function updateQuantity(itemId, quantity) {
+            fetch('{% url "store:cart_update" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    item_id: itemId,
+                    quantity: quantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.removed) {
+                        // Item was removed, refresh the page
+                        window.location.reload();
+                    } else {
+                        // Update item total and cart total
+                        const itemRow = document.querySelector(`.cart-item[data-item-id="${itemId}"]`);
+                        const itemTotalElement = itemRow.querySelector('.item-total');
+                        itemTotalElement.textContent = `${data.item_total} грн`;
+                        
+                        // Update cart totals
+                        document.querySelectorAll('.cart-subtotal, .cart-total').forEach(el => {
+                            el.textContent = `${data.cart_total} грн`;
+                        });
+                    }
+                }
+            })
+            .catch(error => console.error('Error updating cart:', error));
+        }
+
+        // Remove item
+        function removeItem(itemId) {
+            fetch('{% url "store:cart_remove" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    item_id: itemId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Refresh the page
+                    window.location.reload();
+                }
+            })
+            .catch(error => console.error('Error removing item:', error));
+        }
+
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Handle quantity buttons
+        document.querySelectorAll('.decrease-quantity').forEach(button => {
+            button.addEventListener('click', function() {
+                const input = this.parentNode.querySelector('input.item-quantity');
+                const newValue = Math.max(1, parseInt(input.value) - 1);
+                input.value = newValue;
+                
+                // Update cart
+                const itemRow = this.closest('.cart-item');
+                const itemId = itemRow.dataset.itemId;
+                updateQuantity(itemId, newValue);
+            });
+        });
+
+        document.querySelectorAll('.increase-quantity').forEach(button => {
+            button.addEventListener('click', function() {
+                const input = this.parentNode.querySelector('input.item-quantity');
+                const max = parseInt(input.getAttribute('max'));
+                const newValue = Math.min(max, parseInt(input.value) + 1);
+                input.value = newValue;
+                
+                // Update cart
+                const itemRow = this.closest('.cart-item');
+                const itemId = itemRow.dataset.itemId;
+                updateQuantity(itemId, newValue);
+            });
+        });
+
+        document.querySelectorAll('input.item-quantity').forEach(input => {
+            input.addEventListener('change', function() {
+                const max = parseInt(this.getAttribute('max'));
+                const min = parseInt(this.getAttribute('min'));
+                let value = parseInt(this.value);
+                
+                if (isNaN(value) || value < min) {
+                    value = min;
+                    this.value = min;
+                } else if (value > max) {
+                    value = max;
+                    this.value = max;
+                }
+                
+                // Update cart
+                const itemRow = this.closest('.cart-item');
+                const itemId = itemRow.dataset.itemId;
+                updateQuantity(itemId, value);
+            });
+        });
+
+        // Handle remove buttons
+        document.querySelectorAll('.remove-item').forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Ви впевнені, що хочете видалити цей товар з кошика?')) {
+                    const itemRow = this.closest('.cart-item');
+                    const itemId = itemRow.dataset.itemId;
+                    removeItem(itemId);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

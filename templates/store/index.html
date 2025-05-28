@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Nike Store - Головна сторінка{% endblock %}
+
+{% block content %}
+<section class="hero bg-dark text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-12">
+                <div class="banner-carousel">
+                    <div class="banner-slides">
+                        <div class="banner-slide active" style="background-image: url('/static/images/banner1.jpg');">
+                            <div class="carousel-caption text-center">
+                                <h1 class="display-4 fw-bold mb-4">Стиль. Комфорт. Nike.</h1>
+                                <p class="lead mb-4">Відкрийте для себе нову колекцію кросівок Nike – поєднання інновацій, стилю та комфорту для кожного кроку вашого життя.</p>
+                                <a href="{% url 'store:product_list' %}" class="btn btn-light btn-lg px-4">Дивитись колекцію</a>
+                            </div>
+                        </div>
+                      <div class="banner-slide" style="background-image: url('/static/images/banner2.jpg');">
+                            <div class="carousel-caption text-center">
+                                <h1 class="display-4 fw-bold mb-4">Нові тренди від Nike</h1>
+                                <p class="lead mb-4">Дізнайтесь про найсвіжіші моделі та акції прямо зараз!</p>
+                                <a href="{% url 'store:product_list' %}" class="btn btn-light btn-lg px-4">Дивитись акції</a>
+                            </div>
+                        </div>
+                        <div class="banner-slide" style="background-image: url('/static/images/banner3.jpg');">
+                            <div class="carousel-caption text-center">
+                                <h1 class="display-4 fw-bold mb-4">Nike для всіх</h1>
+                                <p class="lead mb-4">Взуття для чоловіків, жінок та дітей – оберіть своє!</p>
+                                <a href="{% url 'store:product_list' %}" class="btn btn-light btn-lg px-4">Пошук за розміром</a>
+                            </div>
+                        </div>
+                        <div class="banner-slide" style="background-image: url('/static/images/banner4.jpg');">
+                            <div class="carousel-caption text-center">
+                                <h1 class="display-4 fw-bold mb-4">Технології Nike</h1>
+                                <p class="lead mb-4">Інноваційні рішення для максимального комфорту.</p>
+                                <a href="{% url 'store:product_list' %}" class="btn btn-light btn-lg px-4">Дізнайтесь більше</a>
+                            </div>
+                        </div>
+                        <div class="banner-slide" style="background-image: url('/static/images/banner5.jpg');">
+                            <div class="carousel-caption text-center">
+                                <h1 class="display-4 fw-bold mb-4">Nike Air Max</h1>
+                                <p class="lead mb-4">Легендарна серія для стильного образу.</p>
+                                <a href="{% url 'store:product_list' %}" class="btn btn-light btn-lg px-4">Переглянути серію</a>
+                            </div>
+                        </div>
+                        <div class="banner-slide" style="background-image: url('/static/images/banner6.jpg');">
+                            <div class="carousel-caption text-center">
+                                <h1 class="display-4 fw-bold mb-4">Nike для спорту</h1>
+                                <p class="lead mb-4">Моделі для бігу, тренувань та активного життя.</p>
+                                <a href="{% url 'store:product_list' %}" class="btn btn-light btn-lg px-4">Вибрати для спорту</a>
+                            </div>
+                        </div>
+                        <div class="banner-slide" style="background-image: url('/static/images/banner7.jpg');">
+                            <div class="carousel-caption text-center">
+                                <h1 class="display-4 fw-bold mb-4">Знижки від Nike</h1>
+                                <p class="lead mb-4">Спеціальні пропозиції для наших клієнтів.</p>
+                                <a href="{% url 'store:product_list' %}" class="btn btn-light btn-lg px-4">Дивитись знижки</a>
+                            </div>
+                        </div>
+                        <div class="banner-slide" style="background-image: url('/static/images/banner8.jpg');">
+                            <div class="carousel-caption text-center">
+                                <h1 class="display-4 fw-bold mb-4">Just Do It</h1>
+                                <p class="lead mb-4">Надихайтесь та досягайте більшого з Nike!</p>
+                                <a href="{% url 'store:product_list' %}" class="btn btn-light btn-lg px-4">Почати зараз</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="container my-5">
+    <h2 class="text-center mb-4">Каталог</h2>
+    <div class="row justify-content-center g-4">
+        <div class="col-md-4 d-flex justify-content-center">
+            <div class="card category-card position-relative overflow-hidden clickable-card" style="width: 416px; height: 200px" data-url="{% url 'store:product_list' %}?gender=M">
+                <div class="position-absolute top-0 start-0 w-100 h-100"
+                     style="background-image: url('/static/images/men-category.jpg'); background-size: cover; background-position: center; filter: blur(3px); z-index: 1;"></div>
+                <div class="position-absolute top-0 start-0 w-100 h-100"
+                     style="background: rgba(0, 0, 0, 0.3); z-index: 2;"></div>
+                <div class="card-body text-center position-relative d-flex flex-column justify-content-center align-items-center h-100"
+                     style="z-index: 3;">
+                    <h3 class="card-title text-white display-4 fw-bold">Чоловікам</h3>
+                    <p class="card-text text-white lead">Стильні та комфортні моделі для чоловіків</p>
+                    <a href="{% url 'store:product_list' %}?gender=M" class="btn btn-outline-light stop-propagation">Перейти</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center">
+            <div class="card category-card position-relative overflow-hidden clickable-card" style="width: 416px; height: 200px" data-url="{% url 'store:product_list' %}?gender=W">
+                <div class="position-absolute top-0 start-0 w-100 h-100"
+                     style="background-image: url('/static/images/women-category.jpg'); background-size: cover; background-position: center; filter: blur(3px); z-index: 1;"></div>
+                <div class="position-absolute top-0 start-0 w-100 h-100"
+                     style="background: rgba(0, 0, 0, 0.3); z-index: 2;"></div>
+                <div class="card-body text-center position-relative d-flex flex-column justify-content-center align-items-center h-100"
+                     style="z-index: 3;">
+                    <h3 class="card-title text-white display-4 fw-bold">Жінкам</h3>
+                    <p class="card-text text-white lead">Елегантні та зручні кросівки для жінок</p>
+                    <a href="{% url 'store:product_list' %}?gender=W" class="btn btn-outline-light stop-propagation">Перейти</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center">
+            <div class="card category-card position-relative overflow-hidden clickable-card" style="width: 416px; height: 200px" data-url="{% url 'store:product_list' %}?gender=K">
+                <div class="position-absolute top-0 start-0 w-100 h-100"
+                     style="background-image: url('/static/images/kids-category.jpg'); background-size: cover; background-position: center; filter: blur(3px); z-index: 1;"></div>
+                <div class="position-absolute top-0 start-0 w-100 h-100"
+                     style="background: rgba(0, 0, 0, 0.3); z-index: 2;"></div>
+                <div class="card-body text-center position-relative d-flex flex-column justify-content-center align-items-center h-100"
+                     style="z-index: 3;">
+                    <h3 class="card-title text-white display-4 fw-bold">Дітям</h3>
+                    <p class="card-text text-white lead">Яскраві та міцні моделі для дітей</p>
+                    <a href="{% url 'store:product_list' %}?gender=K" class="btn btn-outline-light stop-propagation">Перейти</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Популярні моделі</h2>
+        <a href="{% url 'store:product_list' %}" class="btn btn-outline-dark">Переглянути всі</a>
+    </div>
+    <div class="position-relative">
+        <div class="product-slider overflow-hidden" style="cursor: grab; cursor: -webkit-grab;">
+            <div class="product-slides d-flex" id="product-slides">
+                {% for product in featured_products %}
+                <div class="col-md-3 flex-shrink-0">
+                    <div class="card product-card h-100" data-url="{{ product.get_absolute_url }}">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product-img">
+                        {% else %}
+                        <div class="no-img-placeholder"></div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">
+                                <small>
+                                    {% if product.gender == 'M' %}Чоловічі
+                                    {% elif product.gender == 'W' %}Жіночі
+                                    {% else %}Дитячі
+                                    {% endif %}
+                                    • {{ product.get_shoe_type_display }}
+                                </small>
+                            </p>
+                            <p class="card-text fw-bold">{{ product.price }} грн</p>
+                        </div>
+                        <div class="card-footer bg-white border-0">
+                            <a href="{{ product.get_absolute_url }}" class="btn btn-dark w-100 stop-propagation">Детальніше</a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <p class="text-center">Товари не знайдено.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container my-5 py-5 bg-light">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h2 class="mb-4">Про Nike</h2>
+            <p>Компанія Nike — один із найбільших світових виробників спортивного взуття, одягу та аксесуарів. Заснована в 1964 році, Nike сьогодні задає тренди у світі спортивної моди та технологій.</p>
+            <p>Наш слоган "Just Do It" надихає мільйони людей у всьому світі досягати своїх цілей, долати перешкоди та постійно вдосконалюватися.</p>
+        </div>
+        <div class="col-md-6 text-center">
+            <svg height="150px" width="150px" fill="#000000" viewBox="0 0 69 32">
+                <path d="M68.56 4L18.4 25.36Q12.16 28 7.92 28q-4.8 0-6.96-3.36-1.36-2.16-.8-5.48t2.96-7.08q2-3.04 6.56-8-1.6 2.56-2.24 5.28-1.2 5.12 2.16 7.52Q11.2 18 14 18q2.24 0 5.04-.72z"></path>
+            </svg>
+        </div>
+    </div>    
+</section>
+<section class="container my-5">
+    <div class="video-player">
+        <div class="video-wrapper">
+            <iframe id="video-player-iframe" src="https://www.youtube-nocookie.com/embed/osmNtWFr2t0?si=P6KNdrbJMdsCFTcG" title="Nike Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        </div>
+        <div class="more-videos text-center mt-4">
+            <h3 class="h5 mb-3">Більше відео</h3>
+            <div class="video-buttons">
+                <button class="video-switch-btn active" data-src="https://www.youtube-nocookie.com/embed/osmNtWFr2t0?si=P6KNdrbJMdsCFTcG">1</button>
+                <button class="video-switch-btn" data-src="https://www.youtube-nocookie.com/embed/_Ra6wkIoJp0?si=ykuHl79732Ke-pc8">2</button>
+                <button class="video-switch-btn" data-src="https://www.youtube-nocookie.com/embed/dHYTo6Da2aA?si=Nep4BYfYgE03ENHt">3</button>
+                <button class="video-switch-btn" data-src="https://www.youtube-nocookie.com/embed/1VNQB0SYLII?si=ZzfYoP8mLv6eeGqx">4</button>
+                <button class="video-switch-btn" data-src="https://www.youtube-nocookie.com/embed/17aYq81IENc?si=M0tJYLdNz2FAy8RV">5</button>
+                <button class="video-switch-btn" data-src="https://www.youtube-nocookie.com/embed/xMrUkDYvbDc?si=Yncx4Py2fYLNyz-7">6</button>
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

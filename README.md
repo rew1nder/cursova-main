@@ -204,7 +204,7 @@ environment:
 3. Navigate to Products and add new products with images
 4. Multiple images can be added to each product for the carousel feature
 
-# Вигляд сайту
+## Вигляд сайту
 
 <img src="static/images/main-1.png" alt="#"/>
 <img src="static/images/main-2.png" alt="#"/>

@@ -208,6 +208,6 @@ environment:
 
 <img src="static/images/main-1.png" alt="#"/>
 <img src="static/images/main-2.png" alt="#"/>
-<img src="static/images/main-3.png" alt="#"/>
 <img src="static/images/main-4.png" alt="#"/>
 <img src="static/images/main-5.png" alt="#"/>
+<img src="static/images/main-3.png" alt="#"/>

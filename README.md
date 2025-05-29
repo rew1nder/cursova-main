@@ -205,9 +205,8 @@ environment:
 4. Multiple images can be added to each product for the carousel feature
 
 # Вигляд сайту
-
-<img src="workspace\static\images\main-1.png" alt="#"/>
-<img src="workspace\static\images\main-2.png" alt="#"/>
-<img src="workspace\static\images\main-3.png" alt="#"/>
-<img src="workspace\static\images\main-4.png" alt="#"/>
-<img src="workspace\static\images\main-5.png" alt="#"/>
+<img src="workspace/static/images/main-1.png" alt="#"/>
+<img src="workspace/static/images/main-2.png" alt="#"/>
+<img src="workspace/static/images/main-3.png" alt="#"/>
+<img src="workspace/static/images/main-4.png" alt="#"/>
+<img src="workspace/static/images/main-5.png" alt="#"/>

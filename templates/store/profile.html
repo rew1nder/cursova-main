@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Особистий кабінет | Nike Store{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- User Profile Section -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Особисті дані</h5>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }}</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.first_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }}</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.last_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-dark">Зберегти зміни</button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'store:logout' %}" class="btn btn-outline-dark">
+                            <i class="fas fa-sign-out-alt me-2"></i>Вийти
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order History Section -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Історія замовлень</h5>
+                    <span class="badge bg-secondary">{{ orders|length }} замовлень</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if orders %}
+                        <div class="list-group list-group-flush">
+                            {% for order in orders %}
+                                <div class="list-group-item border-0 border-bottom">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="mb-0">Замовлення #{{ order.id|truncatechars:8 }}</h6>
+                                        <span class="badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <p class="text-muted small mb-2">
+                                        <i class="far fa-calendar-alt me-2"></i>{{ order.created_at|date:"d.m.Y H:i" }}
+                                    </p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="mb-0"><strong>{{ order.total_cost }} грн</strong></p>
+                                        </div>
+                                        <a href="{% url 'store:order_detail' order_id=order.id %}" class="btn btn-sm btn-outline-dark">
+                                            Деталі
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="fas fa-shopping-bag text-muted" style="font-size: 48px;"></i>
+                            </div>
+                            <h6>У вас ще немає замовлень</h6>
+                            <p class="text-muted mb-4">Час обрати щось стильне з нашої колекції!</p>
+                            <a href="{% url 'store:product_list' %}" class="btn btn-dark">
+                                Перейти до каталогу
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

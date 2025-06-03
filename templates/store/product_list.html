@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Nike Store - Каталог товарів{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Filters Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Фільтри</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{% if category %}{% url 'store:product_list_by_category' category.slug %}{% else %}{% url 'store:product_list' %}{% endif %}">
+                        
+                        <!-- Gender Filter -->
+                        <div class="mb-4">
+                            <h6 class="filter-heading">Стать</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gender" id="gender_all" value="" {% if not current_gender %}checked{% endif %}>
+                                <label class="form-check-label" for="gender_all">
+                                    Усі
+                                </label>
+                            </div>
+                            {% for code, name in gender_choices %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gender" id="gender_{{ code }}" value="{{ code }}" {% if current_gender == code %}checked{% endif %}>
+                                <label class="form-check-label" for="gender_{{ code }}">
+                                    {{ name }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Shoe Type Filter -->
+                        <div class="mb-4">
+                            <h6 class="filter-heading">Тип взуття</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="shoe_type" id="type_all" value="" {% if not current_shoe_type %}checked{% endif %}>
+                                <label class="form-check-label" for="type_all">
+                                    Усі
+                                </label>
+                            </div>
+                            {% for code, name in shoe_type_choices %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="shoe_type" id="type_{{ code }}" value="{{ code }}" {% if current_shoe_type == code %}checked{% endif %}>
+                                <label class="form-check-label" for="type_{{ code }}">
+                                    {{ name }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Price Range Filter -->
+                        <div class="mb-4">
+                            <h6 class="filter-heading">Ціна</h6>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text">Від</span>
+                                <input type="number" class="form-control" name="min_price" value="{{ current_min_price|default:'' }}" placeholder="0">
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text">До</span>
+                                <input type="number" class="form-control" name="max_price" value="{{ current_max_price|default:'' }}" placeholder="10000">
+                            </div>
+                        </div>
+
+                        <!-- Size Filter -->
+                        <div class="mb-4">
+                            <h6 class="filter-heading">Розмір</h6>
+                            <select class="form-select" name="size">
+                              <option value="">Виберіть розмір</option>
+                                <option value="7.0" {% if current_size == "7.0" %}selected{% endif %}>7.0</option>
+                                <option value="7.5" {% if current_size == "7.5" %}selected{% endif %}>7.5</option>
+                                <option value="8.0" {% if current_size == "8.0" %}selected{% endif %}>8.0</option>
+                                <option value="8.5" {% if current_size == "8.5" %}selected{% endif %}>8.5</option>
+                                <option value="9.0" {% if current_size == "9.0" %}selected{% endif %}>9.0</option>
+                                <option value="9.5" {% if current_size == "9.5" %}selected{% endif %}>9.5</option>
+                                <option value="10.0" {% if current_size == "10.0" %}selected{% endif %}>10.0</option>
+                                <option value="10.5" {% if current_size == "10.5" %}selected{% endif %}>10.5</option>
+                                <option value="11.0" {% if current_size == "11.0" %}selected{% endif %}>11.0</option>
+                                <option value="11.5" {% if current_size == "11.5" %}selected{% endif %}>11.5</option>
+                                <option value="12.0" {% if current_size == "12.0" %}selected{% endif %}>12.0</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-dark w-100">Застосувати</button>
+                        {% if request.GET %}
+                            <a href="{% if category %}{% url 'store:product_list_by_category' category.slug %}{% else %}{% url 'store:product_list' %}{% endif %}" class="btn btn-outline-secondary w-100 mt-2">Скинути фільтри</a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Listing -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    {% if category %}
+                        <h2>{{ category.name }}</h2>
+                        <p>{{ category.description }}</p>
+                    {% elif query %}
+                        <h2>Результати пошуку для "{{ query }}"</h2>
+                    {% else %}
+                        <h2>Усі товари</h2>
+                    {% endif %}
+                </div>
+                <!-- Sort Options -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-dark dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Сортувати
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                        <li><a class="dropdown-item" href="?{% for key, value in request.GET.items %}{% if key != 'sort' %}{{ key }}={{ value }}&{% endif %}{% endfor %}sort=price_asc">Ціна: від низької до високої</a></li>
+                        <li><a class="dropdown-item" href="?{% for key, value in request.GET.items %}{% if key != 'sort' %}{{ key }}={{ value }}&{% endif %}{% endfor %}sort=price_desc">Ціна: від високої до низької</a></li>
+                        <li><a class="dropdown-item" href="?{% for key, value in request.GET.items %}{% if key != 'sort' %}{{ key }}={{ value }}&{% endif %}{% endfor %}sort=newest">Новинки</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="row g-4">
+                {% for product in products %}
+                <div class="col-md-4 col-sm-6">
+                    <div class="card product-card h-100 clickable-card" data-url="{{ product.get_absolute_url }}">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top product-img">
+                        {% else %}
+                        <div class="no-img-placeholder"></div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">
+                                <small>
+                                    {% if product.gender == 'M' %}Чоловічі
+                                    {% elif product.gender == 'W' %}Жіночі
+                                    {% else %}Дитячі
+                                    {% endif %}
+                                    • {{ product.get_shoe_type_display }}
+                                </small>
+                            </p>
+                            <p class="card-text fw-bold">{{ product.price }} грн</p>
+                        </div>
+                        <div class="card-footer bg-white border-0">
+                            <a href="{{ product.get_absolute_url }}" class="btn btn-dark w-100 stop-propagation">Детальніше</a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        {% if query %}
+                            Нічого не знайдено за запитом "{{ query }}". 
+                        {% else %}
+                            Товари не знайдено.
+                        {% endif %}
+                        <a href="{% url 'store:product_list' %}">Переглянути всі товари</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block title %}Оплата замовлення{% endblock %}
+
+{% block content %}
+<div class="container mx-auto py-4 px-3">
+    <div class="bg-white rounded shadow p-4 max-w-3xl mx-auto">
+        <h1 class="text-2xl font-bold mb-4 text-center">Оплата замовлення</h1>
+        
+        <div class="mb-4 border-bottom pb-3">
+            <h2 class="h5 font-weight-bold mb-3">Деталі замовлення</h2>
+            <p class="mb-1"><strong>Номер замовлення:</strong> {{ order.id }}</p>
+            <p class="mb-1"><strong>Дата:</strong> {{ order.created_at|date:"d.m.Y H:i" }}</p>
+            <p class="mb-1"><strong>Статус:</strong> {{ order.get_status_display }}</p>
+            <p class="mb-1"><strong>Ім'я:</strong> {{ order.first_name }} {{ order.last_name }}</p>
+            <p class="mb-1"><strong>Адреса:</strong> {{ order.address }}, {{ order.city }}, {{ order.postal_code }}</p>
+            <p class="mb-1"><strong>Телефон:</strong> {{ order.phone }}</p>
+            <p class="mb-1"><strong>Email:</strong> {{ order.email }}</p>
+            {% if order.note %}
+                <p class="mb-1"><strong>Примітка:</strong> {{ order.note }}</p>
+            {% endif %}
+            <p class="h5 font-weight-bold mt-3">Загальна сума: {{ order.total_cost }} ₴</p>
+        </div>
+
+        <div class="mb-4">
+            <h2 class="h5 font-weight-bold mb-3 text-center">Виберіть спосіб оплати</h2>
+            
+            <form action="{% url 'store:payment_process' %}" method="post" id="payment-form">
+                {% csrf_token %}
+                <input type="hidden" name="order_id" value="{{ order.id }}">
+                <input type="hidden" name="payment_method" id="selected-payment-method" value="credit_card">
+                
+                <div class="row mb-3">
+                    <!-- Credit Card -->
+                    <div class="col-12 col-md-3 mb-2 mb-md-0">
+                        <button type="button" data-method="credit_card" class="payment-option btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center p-2 selected">
+                            <i class="fas fa-credit-card me-2"></i>
+                            <span class="text-sm">Кредитна картка</span>
+                        </button>
+                    </div>
+                    <!-- PayPal -->
+                    <div class="col-12 col-md-3 mb-2 mb-md-0">
+                        <button type="button" data-method="paypal" class="payment-option btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center p-2">
+                            <i class="fab fa-paypal me-2"></i>
+                            <span class="text-sm">PayPal</span>
+                        </button>
+                    </div>
+                    <!-- Google Pay -->
+                    <div class="col-12 col-md-3 mb-2 mb-md-0">
+                        <button type="button" data-method="google_pay" class="payment-option btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center p-2">
+                            <i class="fab fa-google-pay me-2"></i>
+                            <span class="text-sm">Google Pay</span>
+                        </button>
+                    </div>
+                    <!-- Apple Pay -->
+                    <div class="col-12 col-md-3 mb-2 mb-md-0">
+                        <button type="button" data-method="apple_pay" class="payment-option btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center p-2">
+                            <i class="fab fa-apple-pay me-2"></i>
+                            <span class="text-sm">Apple Pay</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="payment-form-fields" class="mt-3">
+                    <!-- Credit Card Fields -->
+                    <div id="credit-card-fields" class="collapse show">
+                        <div class="mb-2">
+                            <label for="card-number" class="form-label">Номер картки</label>
+                            <input type="text" id="card-number" class="form-control" placeholder="1234 1234 1234 1234" maxlength="19" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-2">
+                                <label for="card-expiry" class="form-label">Термін дії</label>
+                                <input type="text" id="card-expiry" class="form-control" placeholder="MM/YY" maxlength="5" required>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label for="card-cvc" class="form-label">CVC</label>
+                                <input type="text" id="card-cvc" class="form-control" placeholder="123" maxlength="4" required>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- PayPal Fields -->
+                    <div id="paypal-fields" class="collapse">
+                        <p class="text-muted">Ви будете перенаправлені на PayPal для завершення оплати.</p>
+                    </div>
+                    <!-- Google Pay Fields -->
+                    <div id="google-pay-fields" class="collapse">
+                        <p class="text-muted">Натисніть "Оплатити", щоб використати Google Pay.</p>
+                    </div>
+                    <!-- Apple Pay Fields -->
+                    <div id="apple-pay-fields" class="collapse">
+                        <p class="text-muted">Натисніть "Оплатити", щоб використати Apple Pay.</p>
+                    </div>
+                </div>
+                
+                <div class="mt-3 text-center">
+                    <button type="submit" class="btn btn-dark">
+                        <i class="fas fa-lock me-2"></i> Оплатити {{ order.total_cost }} ₴
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="text-center mt-3">
+            <a href="{% url 'store:order_confirmation' order_id=order.id %}" class="text-primary text-decoration-none">
+                Повернутися до деталей замовлення
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.payment-option.selected {
+    border-color: #0d6efd !important; /* Bootstrap primary blue */
+    border-width: 2px !important;
+}
+
+.payment-option {
+    min-height: 60px; /* Ensure consistent height */
+}
+
+#payment-form-fields {
+    transition: all 0.3s ease; /* Smooth collapse transition */
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+.invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 0.875em;
+    margin-top: 0.25rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentOptions = document.querySelectorAll('.payment-option');
+    const paymentFormFields = document.getElementById('payment-form-fields');
+    const creditCardFields = document.getElementById('credit-card-fields');
+    const paypalFields = document.getElementById('paypal-fields');
+    const googlePayFields = document.getElementById('google-pay-fields');
+    const applePayFields = document.getElementById('apple-pay-fields');
+    const selectedPaymentMethodInput = document.getElementById('selected-payment-method');
+    const cardNumberInput = document.getElementById('card-number');
+    const cardExpiryInput = document.getElementById('card-expiry');
+    const cardCvcInput = document.getElementById('card-cvc');
+    const form = document.getElementById('payment-form');
+
+    function togglePaymentFields(method) {
+        // Update hidden input with selected method
+        selectedPaymentMethodInput.value = method;
+
+        // Remove 'selected' class from all options
+        paymentOptions.forEach(option => {
+            option.classList.remove('selected');
+        });
+
+        // Add 'selected' class to the clicked option
+        const selectedOption = document.querySelector(`.payment-option[data-method="${method}"]`);
+        if (selectedOption) {
+            selectedOption.classList.add('selected');
+        }
+
+        // Hide all fields by removing 'show' and adding 'collapse'
+        [creditCardFields, paypalFields, googlePayFields, applePayFields].forEach(field => {
+            field.classList.remove('show');
+            field.classList.add('collapse');
+        });
+
+        // Show the selected payment method fields
+        if (method === 'credit_card') {
+            creditCardFields.classList.remove('collapse');
+            creditCardFields.classList.add('show');
+        } else if (method === 'paypal') {
+            paypalFields.classList.remove('collapse');
+            paypalFields.classList.add('show');
+        } else if (method === 'google_pay') {
+            googlePayFields.classList.remove('collapse');
+            googlePayFields.classList.add('show');
+        } else if (method === 'apple_pay') {
+            applePayFields.classList.remove('collapse');
+            applePayFields.classList.add('show');
+        }
+    }
+
+    // Initial toggle (default to Credit Card)
+    togglePaymentFields('credit_card');
+
+    // Add listeners for button clicks
+    paymentOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const method = this.getAttribute('data-method');
+            togglePaymentFields(method);
+        });
+    });
+
+    // Card Number Formatting and Validation
+    cardNumberInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+        if (value.length > 16) value = value.slice(0, 16); // Limit to 16 digits
+        value = value.replace(/(\d{4})(?=\d)/g, '$1 '); // Add space after every 4 digits
+        e.target.value = value.trim();
+    });
+
+    // Expiry Date Formatting and Validation
+    cardExpiryInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+        if (value.length > 4) value = value.slice(0, 4); // Limit to 4 digits
+        if (value.length > 2) value = value.slice(0, 2) + '/' + value.slice(2); // Add / after MM
+        e.target.value = value;
+    });
+
+    // Form Validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+
+        // Validate Card Number (16 digits)
+        const cardNumber = cardNumberInput.value.replace(/\s/g, ''); // Remove spaces for validation
+        if (selectedPaymentMethodInput.value === 'credit_card') {
+            if (!cardNumber || cardNumber.length !== 16) {
+                cardNumberInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                cardNumberInput.classList.remove('is-invalid');
+            }
+
+            // Validate Expiry Date (MM/YY format)
+            const expiry = cardExpiryInput.value.split('/');
+            if (!expiry[0] || !expiry[1] || expiry[0] > 12 || expiry[0] < 1 || expiry[1].length !== 2) {
+                cardExpiryInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                cardExpiryInput.classList.remove('is-invalid');
+            }
+
+            // Validate CVC (3-4 digits)
+            const cvc = cardCvcInput.value;
+            if (!cvc || cvc.length < 3 || cvc.length > 4) {
+                cardCvcInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                cardCvcInput.classList.remove('is-invalid');
+            }
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Будь ласка, заповніть усі поля коректно.');
+        }
+    });
+
+    // Prevent actual form submission for demo purposes (remove this in production)
+    // This is now handled by the validation above
+});
+</script>
+{% endblock %}

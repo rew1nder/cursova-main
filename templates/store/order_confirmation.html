@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Підтвердження замовлення | Nike Store{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fas fa-check-circle text-success me-2"></i>Замовлення #{{ order.id|truncatechars:8 }}
+            </h4>
+            <span class="badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                {{ order.get_status_display }}
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Інформація про замовлення</h5>
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted">Дата замовлення:</td>
+                                <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Статус:</td>
+                                <td>
+                                    <span class="badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Спосіб оплати:</td>
+                                <td>
+                                    {% if order.payment_method == 'credit_card' %}
+                                        <i class="fas fa-credit-card me-1"></i> Кредитна картка
+                                    {% elif order.payment_method == 'paypal' %}
+                                        <i class="fab fa-paypal me-1"></i> PayPal
+                                    {% elif order.payment_method == 'google_pay' %}
+                                        <i class="fab fa-google me-1"></i> Google Pay
+                                    {% elif order.payment_method == 'apple_pay' %}
+                                        <i class="fab fa-apple me-1"></i> Apple Pay
+                                    {% else %}
+                                        <i class="fas fa-money-bill me-1"></i> Оплата при отриманні
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Сума замовлення:</td>
+                                <td><strong>{{ order.total_cost }} грн</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h5>Адреса доставки</h5>
+                    <address>
+                        <strong>{{ order.first_name }} {{ order.last_name }}</strong><br>
+                        {{ order.address }}<br>
+                        {{ order.city }}, {{ order.postal_code }}<br>
+                        <abbr title="Телефон">Тел:</abbr> {{ order.phone }}<br>
+                        <abbr title="Email">Email:</abbr> {{ order.email }}
+                    </address>
+                    {% if order.note %}
+                        <h6>Примітка:</h6>
+                        <p class="text-muted">{{ order.note }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <h5 class="mb-3">Товари в замовленні</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Товар</th>
+                            <th scope="col">Розмір</th>
+                            <th scope="col">Ціна</th>
+                            <th scope="col">Кількість</th>
+                            <th scope="col" class="text-end">Сума</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_items %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ item.product.get_main_image }}" alt="{{ item.product.name }}" 
+                                             class="img-fluid me-3" style="max-width: 60px;">
+                                        <span>{{ item.product.name }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ item.size }}</td>
+                                <td>{{ item.price }} грн</td>
+                                <td>{{ item.quantity }}</td>
+                                <td class="text-end">{{ item.get_cost }} грн</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="4" class="text-end">Загалом:</th>
+                            <th class="text-end">{{ order.total_cost }} грн</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            {% if show_actions %}
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <a href="{% url 'store:product_list' %}" class="btn btn-outline-dark">
+                        <i class="fas fa-arrow-left me-2"></i>Продовжити покупки
+                    </a>
+                    
+                    {% if order.status == 'pending' and not order.payment_method %}
+                        <a href="{% url 'store:payment' order_id=order.id %}" class="btn btn-dark">
+                            <i class="fas fa-credit-card me-2"></i>Сплатити зараз
+                        </a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="d-flex justify-content-end mt-4">
+                    <a href="{% url 'store:profile' %}" class="btn btn-outline-dark">
+                        <i class="fas fa-arrow-left me-2"></i>Повернутися до профілю
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
